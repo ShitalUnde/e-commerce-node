@@ -26,9 +26,22 @@ var userSchema = new mongoose.Schema({
     },
 });
 
-userSchema.pre('save', async (next)=> {
-
+userSchema.pre('save', async function(next) {
+    // console.log('before')
+    const salt = await bcrypt.genSaltSync(10)
+    this.password = await bcrypt.hash(this.password,salt)
 })
+
+userSchema.post('save', async function(next) {
+    // console.log('after')
+
+    const salt = await bcrypt.genSaltSync(10)
+    this.password = await bcrypt.hash(this.password,salt)
+})
+
+userSchema.methods.isPasswordMatch = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword,this.password)
+}
 
 //Export the model
 module.exports = mongoose.model('UsersCollection', userSchema);

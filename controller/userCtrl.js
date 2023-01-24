@@ -9,7 +9,7 @@ const createUser = asyncHandler(
   
     const findUser = await User.findOne({ email: email });
     if (!findUser) {
-      const newUser =  await User.create(req.body);
+      const newUser =  await Usleter.create(req.body);
      // console.log('newUser', JSON.stringify(newUser))
       res.send(newUser)
       // newUser.then(async(result) => {
@@ -49,4 +49,24 @@ const getUser = asyncHandler(
   }
 )
 
-module.exports = { createUser ,getUser};
+
+const loginUserCtrl = asyncHandler(
+  async (req,res) => {
+    try{
+      const {email,password} = req.body
+      console.log(email,password)
+        const findUser = await User.findOne({email: email});
+
+        if(findUser && findUser.isPasswordMatch(password)){
+             res.send('success') 
+        }
+        else{
+            throw new Error('Credential doesn\'t match')
+        }
+    }
+    catch(err) {
+      throw new Error(err)
+    }
+  }
+)
+module.exports = { createUser ,getUser, loginUserCtrl};
