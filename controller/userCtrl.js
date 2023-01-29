@@ -1,7 +1,8 @@
 const { json } = require("body-parser");
 // const User = require("../models/userModel").collection;
 const User = require("../models/userModel")
-const asyncHandler = require("express-async-handler")
+const asyncHandler = require("express-async-handler");
+const { generateToken } = require("../config/jwtToken");
 
 const createUser = asyncHandler(
   async (req, res) => {
@@ -9,30 +10,16 @@ const createUser = asyncHandler(
   
     const findUser = await User.findOne({ email: email });
     if (!findUser) {
-      const newUser =  await Usleter.create(req.body);
-     // console.log('newUser', JSON.stringify(newUser))
+      const newUser =  await User.create(req.body);
       res.send(newUser)
-      // newUser.then(async(result) => {
-      //      let data = await User.findOne(result.insertedId)
-      //     // delete data.password;
-      //   //  res.send(data);
-      //   res.json(data)
-  
-      // }).catch((err) => {
-      //     throw new Error('oops something went wrong')
-      //   })
     }
      else {
       throw new Error('User already exist')
-      // res.json({
-      //   msg: "User already exist",
-      //   success: false,
-      // });
     }
   }
 )
 
-const getUser = asyncHandler(
+const getAllUsers = asyncHandler(
   async (req,res) => {
     try{
       let result = await User.find();
@@ -54,11 +41,18 @@ const loginUserCtrl = asyncHandler(
   async (req,res) => {
     try{
       const {email,password} = req.body
-      console.log(email,password)
-        const findUser = await User.findOne({email: email});
-
-        if(findUser && findUser.isPasswordMatch(password)){
-             res.send('success') 
+        const findUser = await User.findOne({email});
+        if(findUser && await findUser.isPasswordMatch(password)){
+          token = generateToken(findUser._id)
+             res.send({
+              id: findUser._id,
+              firstName: findUser.firstName,
+              lastName: findUser.lastName,
+              email:findUser.email,
+              password: findUser.password,
+              mobile:findUser.mobile,
+              token: generateToken(findUser._id)
+             }) 
         }
         else{
             throw new Error('Credential doesn\'t match')
@@ -69,4 +63,41 @@ const loginUserCtrl = asyncHandler(
     }
   }
 )
-module.exports = { createUser ,getUser, loginUserCtrl};
+
+const getUserById = asyncHandler(async (req,res) => {
+ const {id} = req.params
+ console.log(id)
+ try{
+  const findUser = await User.findById(id)
+  if(!!findUser) res.send(findUser)
+  else throw new Error('User not found')
+}catch(err) {
+  throw new Error(err)
+}
+})
+
+const updateUserById = asyncHandler(async (req,res) => {
+  const {id} = req.params
+  console.log(id)
+     try{
+         const findUser = await User.findByIdAndUpdate(id, req.body,{new:true})
+         if(!!findUser) res.send(findUser)
+         else throw new Error('User not found')
+     }catch(err) {
+         throw new Error(err)
+     }
+ })
+
+const deleteUserById = asyncHandler(async (req,res) => {
+  const {id} = req.params
+  console.log(id)
+     try{
+         const findUser = await User.findByIdAndDelete(id)
+         if(!!findUser) res.send(findUser)
+         else throw new Error('User not found')
+     }catch(err) {
+         throw new Error(err)
+     }
+ })
+
+module.exports = { createUser ,getAllUsers, loginUserCtrl, getUserById, deleteUserById, updateUserById};
