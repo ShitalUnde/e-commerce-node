@@ -26,8 +26,9 @@ const getAllUsers = asyncHandler(
       if(!!result && result.length > 0){
         res.send(result);
       }
-      else {
-        throw new Error('User is not created Yet')
+      else {        
+        res.send([]);
+        //throw new Error('User is not created Yet')
       }
     }
     catch(err) {
@@ -65,10 +66,10 @@ const loginUserCtrl = asyncHandler(
 )
 
 const getUserById = asyncHandler(async (req,res) => {
- const {id} = req.params
- console.log(id)
+  console.log('..........',req.user._id)
+ const {_id} = req.user
  try{
-  const findUser = await User.findById(id)
+  const findUser = await User.findById(_id)
   if(!!findUser) res.send(findUser)
   else throw new Error('User not found')
 }catch(err) {
@@ -77,10 +78,9 @@ const getUserById = asyncHandler(async (req,res) => {
 })
 
 const updateUserById = asyncHandler(async (req,res) => {
-  const {id} = req.params
-  console.log(id)
+  const {_id} = req.user
      try{
-         const findUser = await User.findByIdAndUpdate(id, req.body,{new:true})
+         const findUser = await User.findByIdAndUpdate(_id, req.body,{new:true})
          if(!!findUser) res.send(findUser)
          else throw new Error('User not found')
      }catch(err) {
@@ -90,7 +90,6 @@ const updateUserById = asyncHandler(async (req,res) => {
 
 const deleteUserById = asyncHandler(async (req,res) => {
   const {id} = req.params
-  console.log(id)
      try{
          const findUser = await User.findByIdAndDelete(id)
          if(!!findUser) res.send(findUser)
@@ -100,4 +99,19 @@ const deleteUserById = asyncHandler(async (req,res) => {
      }
  })
 
-module.exports = { createUser ,getAllUsers, loginUserCtrl, getUserById, deleteUserById, updateUserById};
+ const blockUserById = asyncHandler(async (req,res) => {
+  const {id} = req.params
+     try{
+         const findUser = await User.findByIdAndUpdate(id, req.body,{new:true})
+         if(!!findUser) res.send({
+          "message": "User blocked successfully",
+          "user":findUser
+         })
+         if(!!findUser) res.send(findUser)
+         else throw new Error('User not found')
+     }catch(err) {
+         throw new Error(err)
+     }
+ })
+
+module.exports = { createUser ,getAllUsers, loginUserCtrl, getUserById, deleteUserById, updateUserById, blockUserById};

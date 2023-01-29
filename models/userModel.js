@@ -45,9 +45,14 @@ var userSchema = Schema({
         type: Schema.Types.ObjectId,
         required: true,
       }],
-      wishlist:[{
+    wishlist:[{
         type: Schema.Types.ObjectId
-      }],
+    }],
+    isBlocked: {
+      type: Boolean,
+      default: false,  
+    }
+
 }, {
     timestamps: true
 });

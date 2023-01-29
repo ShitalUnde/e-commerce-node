@@ -5,11 +5,14 @@ const asyncHandler = require('express-async-handler')
 const authHandler = asyncHandler(async(req,res,next) => {
     let token;
     if(req?.headers?.authorization?.startsWith('Bearer')){
-            token = req.headers.authorization.split(" "[1])
+            token = req.headers.authorization.split(" ")[1]
             try{
                 if(token){
-                    const decoded = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
-                    console.log(decoded)
+                    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+                    console.log(decoded.id)
+                    const user = await User.findById(decoded.id)
+                    req.user = user;
+                    next()
                 }
             }
             catch(err){
@@ -20,4 +23,15 @@ const authHandler = asyncHandler(async(req,res,next) => {
     }
 })
 
-module.exports =  {authHandler} 
+const isAdmin = asyncHandler(async (req,res,next) => {
+    const {email} = req.user
+    console.log()
+    const adminUser = await User.findOne({email})
+    if(!!adminUser && adminUser.role !== 'admin' ) {
+        throw new Error('You are not Admin')
+    }else {
+       next()
+    }
+})
+
+module.exports =  {authHandler, isAdmin} 
