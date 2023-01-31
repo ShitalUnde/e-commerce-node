@@ -9,7 +9,6 @@ const authHandler = asyncHandler(async(req,res,next) => {
             try{
                 if(token){
                     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-                    console.log(decoded.id)
                     const user = await User.findById(decoded.id)
                     req.user = user;
                     next()
@@ -25,7 +24,6 @@ const authHandler = asyncHandler(async(req,res,next) => {
 
 const isAdmin = asyncHandler(async (req,res,next) => {
     const {email} = req.user
-    console.log()
     const adminUser = await User.findOne({email})
     if(!!adminUser && adminUser.role !== 'admin' ) {
         throw new Error('You are not Admin')

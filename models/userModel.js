@@ -51,6 +51,9 @@ var userSchema = Schema({
     isBlocked: {
       type: Boolean,
       default: false,  
+    },
+    refreshToken: {
+        type: String
     }
 
 }, {

@@ -1,5 +1,6 @@
 const { urlencoded } = require('body-parser');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const express = require('express');
 // const cryptoKey = require('./_helper/generateKeys')
 const dbConnect = require('./config/dbConnect');
@@ -12,7 +13,7 @@ dbConnect();
 
 app.use(bodyParser.urlencoded({extended:false}))
 app.use(bodyParser.json())
-
+app.use(cookieParser())
 app.use('/api/user', authRouter)
 
 app.use(notFound)
