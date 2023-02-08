@@ -4,7 +4,6 @@ const User = require("../models/userModel")
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
-
 const {validateMongoDBId} = require('../utils/validateMongodbId')
 const createUser = asyncHandler(
   async (req, res) => {
@@ -86,8 +85,18 @@ const loginUserCtrl = asyncHandler(
 
 
 const handleRefreshToken = asyncHandler(async(req,res)=> {
-  const cookie = req.cookie
-  console.log(cookie)
+  const cookie = req.cookies
+  if(!cookie?.refreshToken){
+    throw new Error('No refresh token in Cookie')
+  }else {
+     const refreshToken = cookie.refreshToken
+    const findUser =await User.findOne({refreshToken})
+    if(findUser){
+      res.json(findUser)
+    }else {
+      throw new Error('No refresh token present in db or not matched')
+    }
+  }
 })
 
 
