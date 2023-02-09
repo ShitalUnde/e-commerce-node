@@ -5,6 +5,9 @@ const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
 const {validateMongoDBId} = require('../utils/validateMongodbId')
+const jwt = require('jsonwebtoken')
+
+// Create User
 const createUser = asyncHandler(
   async (req, res) => {
     const email = req.body.email;
@@ -20,25 +23,7 @@ const createUser = asyncHandler(
   }
 )
 
-const getAllUsers = asyncHandler(
-  async (req,res) => {
-    try{
-      let result = await User.find();
-      if(!!result && result.length > 0){
-        res.send(result);
-      }
-      else {        
-        res.send([]);
-        //throw new Error('User is not created Yet')
-      }
-    }
-    catch(err) {
-      throw new Error(err)
-    }
-  }
-)
-
-
+// Login User
 const loginUserCtrl = asyncHandler(
   async (req,res) => {
     try{
@@ -83,16 +68,47 @@ const loginUserCtrl = asyncHandler(
   }
 )
 
+//Get All User
+const getAllUsers = asyncHandler(
+  async (req,res) => {
+    try{
+      let result = await User.find();
+      if(!!result && result.length > 0){
+        res.send(result);
+      }
+      else {        
+        res.send([]);
+        //throw new Error('User is not created Yet')
+      }
+    }
+    catch(err) {
+      throw new Error(err)
+    }
+  }
+)
 
+//Refresh Token
 const handleRefreshToken = asyncHandler(async(req,res)=> {
   const cookie = req.cookies
   if(!cookie?.refreshToken){
     throw new Error('No refresh token in Cookie')
   }else {
      const refreshToken = cookie.refreshToken
+    //  console.log(refreshToken)
     const findUser =await User.findOne({refreshToken})
+    // console.log(findUser)
     if(findUser){
-      res.json(findUser)
+      jwt.verify(refreshToken,  process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        // console.log(findUser._id)
+
+        if(err || findUser.id !== decoded.id){
+          throw new Error('There is something wrong with refresh token')
+        }else{
+          const accessToken  = generateToken(findUser._id)
+           res.json({accessToken})
+        }
+      })
+      
     }else {
       throw new Error('No refresh token present in db or not matched')
     }
@@ -100,6 +116,7 @@ const handleRefreshToken = asyncHandler(async(req,res)=> {
 })
 
 
+// get user by Id
 const getUserById = asyncHandler(async (req,res) => {
  const {_id} = req.user
  validateMongoDBId(_id)
@@ -112,6 +129,7 @@ const getUserById = asyncHandler(async (req,res) => {
 }
 })
 
+//update user by Id
 const updateUserById = asyncHandler(async (req,res) => {
   const {_id} = req.user
   validateMongoDBId(_id)
@@ -124,6 +142,7 @@ const updateUserById = asyncHandler(async (req,res) => {
      }
  })
 
+ //delete User by
 const deleteUserById = asyncHandler(async (req,res) => {
   const {id} = req.params
   validateMongoDBId(id)
@@ -136,6 +155,8 @@ const deleteUserById = asyncHandler(async (req,res) => {
      }
  })
 
+
+//Block User
  const blockUserById = asyncHandler(async (req,res) => {
   const {id} = req.params
   validateMongoDBId(id)
@@ -152,6 +173,7 @@ const deleteUserById = asyncHandler(async (req,res) => {
      }
  })
 
+ //unblock User
  const unblockUserById = asyncHandler(async (req,res) => {
   const {id} = req.params
   validateMongoDBId(id)
@@ -168,4 +190,47 @@ const deleteUserById = asyncHandler(async (req,res) => {
      }
  })
 
-module.exports = { createUser ,getAllUsers, loginUserCtrl, getUserById, deleteUserById, updateUserById, blockUserById , unblockUserById, handleRefreshToken};
+ //Delete all Users
+ const deleteAllUsers = asyncHandler(async(req,res) => {
+  console.log('delete all records...')
+  if(await User.count() > 0){
+    const result = await User.deleteMany({})
+    res.json({
+      result: result,
+      message: `All records deleted`
+    })
+  }else {
+    throw new Error('Already all records deleted')
+  }
+  
+ })
+
+
+ //logout user
+const logout = asyncHandler(async (req,res)=> {
+  const cookie = req.cookies
+  if(!cookie){
+     throw new Error('No Refresh token in cookies')
+  }
+  else {
+   const refreshToken = cookie.refreshToken
+   const findUser = await User.findOne({ refreshToken})
+
+   if(!findUser){
+     res.clearCookie('refreshToken')
+     res.status(204).send();
+   }
+   else{
+    console.log('else')
+    const updateUser = await User.findByIdAndUpdate(findUser._id,{
+      refreshToken: ''
+    }, {
+      new: true
+    })
+
+     res.clearCookie('refreshToken')
+     res.status(204).send();
+   }
+  }
+})
+module.exports = { createUser ,getAllUsers, loginUserCtrl, getUserById, deleteUserById, updateUserById, blockUserById , unblockUserById, handleRefreshToken, deleteAllUsers, logout};

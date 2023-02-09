@@ -75,4 +75,4 @@ userSchema.methods.isPasswordMatch = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword,this.password)
 }
 //Export the model
-module.exports = mongoose.model('UsersCollection', userSchema);
+module.exports = mongoose.model('Users', userSchema);
