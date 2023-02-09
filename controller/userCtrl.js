@@ -216,19 +216,24 @@ const logout = asyncHandler(async (req,res)=> {
    const refreshToken = cookie.refreshToken
    const findUser = await User.findOne({ refreshToken})
 
+   configOption = {
+    secure: true,
+    httpOnly: true,
+   }
    if(!findUser){
-     res.clearCookie('refreshToken')
+     res.clearCookie('refreshToken', configOption)
      res.status(204).send();
    }
    else{
-    console.log('else')
+  //  result = await User.findOne({refreshToken})
+
     const updateUser = await User.findByIdAndUpdate(findUser._id,{
-      refreshToken: ''
+      refreshToken: null,
     }, {
       new: true
     })
 
-     res.clearCookie('refreshToken')
+     res.clearCookie('refreshToken', configOption)
      res.status(204).send();
    }
   }
