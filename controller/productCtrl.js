@@ -27,10 +27,9 @@ const getProductById = asyncHandler(async (req,res) => {
 
 const getAllProduct = asyncHandler(async (req,res) => {
     const getAllProduct = await Product.find()
+    console.log(getAllProduct)
     if(!getAllProduct)
     throw new Error('There is no product')
-
-    console.log('...........',)
 
     res.send({
         data: getAllProduct,
