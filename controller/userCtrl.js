@@ -47,6 +47,7 @@ const loginUserCtrl = asyncHandler(
             httpOnly: true,
             maxAge: 72 * 60 * 60 * 1000, 
           })
+          
           token = generateToken(findUser._id)
              res.send({
               id: findUser._id,
